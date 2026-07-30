@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gymcord Fantasy Slot Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0E14;
+    --surface:#1A1F2E;
+    --surface-2:#212736;
+    --border:#2A3142;
+    --text:#FFFFFF;
+    --text-secondary:#A0AEC0;
+    --text-tertiary:#6B7280;
+    --accent:#00D9FF;
+    --accent-dark:#00ACC1;
+    --accent-purple:#8B5CF6;
+    --success:#10B981;
+    --warning:#F59E0B;
+    --error:#EF4444;
+    --radius-sm:8px;
+    --radius-lg:20px;
+  }
+  :root[data-theme="light"]{
+    --bg:#F8F9FA;
+    --surface:#FFFFFF;
+    --surface-2:#F3F4F6;
+    --border:#E5E7EB;
+    --text:#1F2937;
+    --text-secondary:#6B7280;
+    --text-tertiary:#9CA3AF;
+    --accent:#00ACC1;
+    --accent-dark:#0891B2;
+    --accent-purple:#8B5CF6;
+    --success:#10B981;
+    --warning:#F59E0B;
+    --error:#EF4444;
+  }
+  *{box-sizing:border-box;}
+  button{font-family:inherit;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"M PLUS 1p",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+    transition:background-color .2s ease,color .2s ease;
+  }
+  a{color:var(--accent);}
+
+  .hero{
+    background:linear-gradient(100deg,#c026d3 0%,#8b5cf6 35%,#64748b 55%,#22c55e 100%);
+    padding:28px 24px;
+  }
+  .hero-inner{
+    max-width:960px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .theme-toggle{
+    margin-left:auto;
+    width:44px;height:44px;
+    border-radius:12px;
+    background:rgba(10,14,20,0.55);
+    border:1px solid rgba(255,255,255,0.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background-color .2s ease,transform .1s ease;
+  }
+  .theme-toggle:hover{background:rgba(10,14,20,0.75);}
+  .theme-toggle:active{transform:scale(0.94);}
+  .hero h1{
+    margin:0;
+    font-size:22px;
+    letter-spacing:.2px;
+    color:#fff;
+    text-shadow:0 1px 4px rgba(0,0,0,.35);
+  }
+  .hero p{
+    margin:2px 0 0;
+    color:rgba(255,255,255,.9);
+    font-size:14px;
+  }
+
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+    padding:32px 24px 80px;
+  }
+
+  .slot-cabinet{
+    background:linear-gradient(135deg,#c026d3,#8b5cf6 40%,#64748b 65%,#22c55e);
+    padding:4px;
+    border-radius:28px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .slot-inner{
+    background:var(--surface);
+    border-radius:24px;
+    padding:32px 24px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:18px;
+    justify-content:center;
+  }
+
+  .reel-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+  .reel-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color:var(--text-tertiary);
+    font-weight:700;
+  }
+  .reel-window{
+    position:relative;
+    width:216px;
+    height:264px;
+    overflow:hidden;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:14px;
+  }
+  .reel-strip{
+    display:flex;
+    flex-direction:column;
+    will-change:transform;
+  }
+  .reel-item{
+    height:88px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:0 12px;
+    font-size:13.5px;
+    font-weight:700;
+    line-height:1.25;
+    color:var(--text);
+  }
+  .reel-item .emoji{
+    font-size:26px;
+    display:block;
+    margin-bottom:4px;
+  }
+  .payline{
+    position:absolute;
+    top:88px;
+    left:0;
+    right:0;
+    height:88px;
+    border-top:2px solid var(--accent);
+    border-bottom:2px solid var(--accent);
+    pointer-events:none;
+    box-shadow:0 0 14px rgba(0,217,255,.25) inset;
+    z-index:3;
+    transition:box-shadow .2s ease,border-color .2s ease;
+  }
+  .payline.flash{
+    border-color:var(--success);
+    box-shadow:0 0 22px rgba(16,185,129,.55) inset;
+  }
+  .reel-window::before,.reel-window::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;
+    height:44px;
+    z-index:2;
+    pointer-events:none;
+  }
+  .reel-window::before{top:0;background:linear-gradient(var(--surface-2),transparent);}
+  .reel-window::after{bottom:0;background:linear-gradient(transparent,var(--surface-2));}
+
+  .spin-row{
+    display:flex;
+    justify-content:center;
+    margin-top:26px;
+  }
+  .spin-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:linear-gradient(100deg,#c026d3,#8b5cf6 50%,#00D9FF 100%);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-lg);
+    padding:16px 40px;
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:.3px;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(139,92,246,.35);
+    transition:transform .12s ease,box-shadow .12s ease,opacity .15s ease;
+  }
+  .spin-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 28px rgba(139,92,246,.45);}
+  .spin-btn:active:not(:disabled){transform:scale(0.97);}
+  .spin-btn:disabled{opacity:.6;cursor:default;}
+  .spin-btn .spin-icon{
+    font-size:20px;
+    display:inline-block;
+  }
+  .spin-btn.spinning .spin-icon{animation:spin-icon-turn .6s linear infinite;}
+  @keyframes spin-icon-turn{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+  }
+
+  .result-panel{
+    margin-top:28px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:24px;
+    display:none;
+  }
+  .result-panel.visible{display:block;}
+  .result-title{
+    margin:0 0 4px;
+    font-size:18px;
+    font-weight:800;
+    color:var(--accent);
+  }
+  .result-sub{
+    margin:0 0 16px;
+    font-size:12.5px;
+    color:var(--text-tertiary);
+  }
+  .result-row{
+    display:flex;
+    gap:12px;
+    padding:12px 0;
+    border-top:1px solid var(--border);
+  }
+  .result-row:first-of-type{border-top:none;}
+  .result-emoji{font-size:24px;line-height:1;flex-shrink:0;}
+  .result-label{font-weight:700;font-size:14px;color:var(--text);}
+  .result-desc{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+
+  .copy-row{
+    margin-top:18px;
+    display:flex;
+    justify-content:flex-end;
+  }
+  .copy-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--accent);
+    color:#001217;
+    border:none;
+    border-radius:var(--radius-lg);
+    padding:10px 20px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform .1s ease,background .15s ease;
+  }
+  .copy-btn:hover{background:var(--accent-dark);}
+  .copy-btn:active{transform:scale(0.97);}
+  .copy-btn.copied{background:var(--success);color:#04231a;}
+
+  @media (max-width:720px){
+    .reel-window{width:44vw;max-width:216px;}
+  }
+
+  footer{
+    max-width:960px;
+    margin:0 auto;
+    padding:0 24px 40px;
+    color:var(--text-tertiary);
+    font-size:12.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1>Gymcord Fantasy Slot Machine</h1>
+      <p>Pull the lever and let fate decide your next league theme.</p>
+    </div>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode">🌙</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="slot-cabinet">
+    <div class="slot-inner">
+      <div class="reel-col">
+        <span class="reel-label">Gymnast Pool</span>
+        <div class="reel-window" id="reelWindow0">
+          <div class="reel-strip" id="reelStrip0"></div>
+          <div class="payline" id="payline0"></div>
+        </div>
+      </div>
+      <div class="reel-col">
+        <span class="reel-label">Draft Type</span>
+        <div class="reel-window" id="reelWindow1">
+          <div class="reel-strip" id="reelStrip1"></div>
+          <div class="payline" id="payline1"></div>
+        </div>
+      </div>
+      <div class="reel-col">
+        <span class="reel-label">Rule</span>
+        <div class="reel-window" id="reelWindow2">
+          <div class="reel-strip" id="reelStrip2"></div>
+          <div class="payline" id="payline2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spin-row">
+    <button type="button" class="spin-btn" id="spinBtn">
+      <span class="spin-icon">🎰</span>
+      <span id="spinBtnLabel">SPIN</span>
+    </button>
+  </div>
+
+  <div class="result-panel" id="resultPanel">
+    <p class="result-title" id="resultTitle">🎰 Your League</p>
+    <p class="result-sub">Rolled on the Gymcord Fantasy Slot Machine</p>
+
+    <div class="result-row">
+      <div class="result-emoji" id="rEmoji0"></div>
+      <div>
+        <div class="result-label" id="rLabel0"></div>
+        <div class="result-desc" id="rDesc0"></div>
+      </div>
+    </div>
+    <div class="result-row">
+      <div class="result-emoji" id="rEmoji1"></div>
+      <div>
+        <div class="result-label" id="rLabel1"></div>
+        <div class="result-desc" id="rDesc1"></div>
+      </div>
+    </div>
+    <div class="result-row">
+      <div class="result-emoji" id="rEmoji2"></div>
+      <div>
+        <div class="result-label" id="rLabel2"></div>
+        <div class="result-desc" id="rDesc2"></div>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <button class="copy-btn" id="copyBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        <span id="copyBtnLabel">Copy to Clipboard</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<footer>Made with &lt;3 by Gymcord</footer>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  // light/dark mode toggle
+  const themeToggle = $("themeToggle");
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    themeToggle.textContent = theme === "light" ? "☀️" : "🌙";
+    localStorage.setItem("gymcordSlotTheme", theme);
+  }
+  const savedTheme = localStorage.getItem("gymcordSlotTheme")
+    || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  applyTheme(savedTheme);
+  themeToggle.addEventListener("click", ()=>{
+    const current = document.documentElement.getAttribute("data-theme");
+    applyTheme(current === "light" ? "dark" : "light");
+  });
+
+  // reel content
+  const POOL = [
+    {emoji:"🐾",label:"Animal Mascots Only",desc:"Only gymnasts from schools with animal mascots are draft-eligible.",frag:"Menagerie"},
+    {emoji:"🔴",label:"Red Schools Only",desc:"Only schools that rock red as a primary color.",frag:"Crimson"},
+    {emoji:"🐘",label:"SEC Schools Only",desc:"Pool is limited to SEC gymnasts.",frag:"SEC Showdown"},
+    {emoji:"🎓",label:"Academic Baddie Schools Only",desc:"Only elite-academic schools make the cut.",frag:"Dean's List"},
+    {emoji:"💉",label:"Nursing Majors Only",desc:"Only gymnasts studying nursing are eligible.",frag:"Scrub Squad"},
+    {emoji:"📚",label:"4.0 GPA Athletes Only",desc:"Straight-A students only, brains and beam.",frag:"Honor Roll"},
+    {emoji:"👟",label:"Adidas Schools Only",desc:"Only Adidas-sponsored programs are in the pool.",frag:"Three Stripes"},
+    {emoji:"🏟️",label:"D1 Only",desc:"No D2 or D3 athletes allowed.",frag:"Big Time"},
+    {emoji:"🌲",label:"Former & Current Pac-12",desc:"Only current or former Pac-12 schools.",frag:"Conference of Champions"}
+  ];
+  const DRAFT = [
+    {emoji:"🐍",label:"Snake",desc:"Pick order reverses every round.",frag:"Snake Draft"},
+    {emoji:"🎮",label:"Draft Order Determined by a Game",desc:"Host picks a mini-game to set the order.",frag:"Game Night"},
+    {emoji:"🎡",label:"Wheelie Decides Who Goes Next",desc:"Spin the wheel before every single pick.",frag:"Wheel Deal"},
+    {emoji:"🔄",label:"Rotating",desc:"In each round, a new player gets to go first.",frag:"Rotation"},
+    {emoji:"🤖",label:"Autodraft",desc:"Gymlytics autodraft runs the whole thing.",frag:"Auto"},
+    {emoji:"🏫",label:"Each Round is a Different Class",desc:"Round 1 = Freshmen only, Round 2 = Sophomores, and so on.",frag:"Class Act"},
+    {emoji:"🗺️",label:"Each Round is a Different Conference",desc:"Every round drafts from a new conference.",frag:"Conference Hop"}
+  ];
+  const RULES = [
+    {emoji:"🚫",label:"No Trades",desc:"Whoever you draft is who you ride with all season."},
+    {emoji:"🤕",label:"Must Have at Least 3 Injured Athletes",desc:"Every roster needs at least 3 gymnasts currently injured."},
+    {emoji:"🔟",label:"10 Up / 5 Count",desc:"10 gymnasts startable per apparatus, top 5 scores count."},
+    {emoji:"🔢",label:"15 Up / 5 Count",desc:"15 gymnasts startable per apparatus, top 5 scores count."},
+    {emoji:"🔢",label:"20 Up / 5 Count",desc:"20 gymnasts startable per apparatus, top 5 scores count."},
+    {emoji:"🔢",label:"30 Up / 5 Count",desc:"30 gymnasts startable per apparatus, top 5 scores count."},
+    {emoji:"💺",label:"Must Have at Least 3 Noncompete Athletes",desc:"Every roster needs at least 3 gymnasts who did not compete last season."}
+  ];
+
+  const REELS = [POOL, DRAFT, RULES];
+  const ROW_H = 88;
+  const REPEATS = 12;
+  const LOOPS = 5;
+  const DURATIONS = [2.0, 2.6, 3.2];
+
+  const state = REELS.map(()=>({ restPos: 0 }));
+
+  function buildStrip(items){
+    let html = "";
+    for(let r=0;r<REPEATS;r++){
+      items.forEach(it=>{
+        html += `<div class="reel-item"><span class="emoji">${it.emoji}</span>${it.label}</div>`;
+      });
+    }
+    return html;
+  }
+
+  function initReel(i){
+    const items = REELS[i];
+    const N = items.length;
+    const stripEl = $("reelStrip"+i);
+    stripEl.innerHTML = buildStrip(items);
+    state[i].restPos = N; // start at items[0], deep enough for reset trick
+    stripEl.style.transition = "none";
+    stripEl.style.transform = `translateY(-${(state[i].restPos-1)*ROW_H}px)`;
+  }
+
+  function spinReel(i){
+    const items = REELS[i];
+    const N = items.length;
+    const s = state[i];
+    const stripEl = $("reelStrip"+i);
+    const currentLogical = s.restPos % N;
+    const targetIndex = Math.floor(Math.random()*N);
+    const delta = (targetIndex - currentLogical + N) % N;
+    const newRestPos = s.restPos + N*LOOPS + delta;
+
+    return new Promise(resolve=>{
+      stripEl.style.transition = `transform ${DURATIONS[i]}s cubic-bezier(0.12,0.79,0.32,1)`;
+      requestAnimationFrame(()=>{
+        stripEl.style.transform = `translateY(-${(newRestPos-1)*ROW_H}px)`;
+      });
+      const onEnd = (e)=>{
+        if(e.propertyName !== "transform") return;
+        stripEl.removeEventListener("transitionend", onEnd);
+        const resetRestPos = N + targetIndex;
+        stripEl.style.transition = "none";
+        stripEl.style.transform = `translateY(-${(resetRestPos-1)*ROW_H}px)`;
+        void stripEl.offsetHeight;
+        s.restPos = resetRestPos;
+
+        const payline = $("payline"+i);
+        payline.classList.add("flash");
+        setTimeout(()=>payline.classList.remove("flash"), 500);
+
+        resolve(items[targetIndex]);
+      };
+      stripEl.addEventListener("transitionend", onEnd);
+    });
+  }
+
+  function renderResult(pool, draft, rule){
+    const leagueName = `${pool.frag} ${draft.frag} League`;
+    $("resultTitle").textContent = `🎰 ${leagueName}`;
+
+    const rows = [
+      {emoji:pool.emoji, label:"Gymnast Pool: "+pool.label, desc:pool.desc},
+      {emoji:draft.emoji, label:"Draft Type: "+draft.label, desc:draft.desc},
+      {emoji:rule.emoji, label:"Rule: "+rule.label, desc:rule.desc}
+    ];
+    rows.forEach((r,idx)=>{
+      $("rEmoji"+idx).textContent = r.emoji;
+      $("rLabel"+idx).textContent = r.label;
+      $("rDesc"+idx).textContent = r.desc;
+    });
+
+    $("resultPanel").classList.add("visible");
+
+    const copyText =
+`🎰 **${leagueName}**
+
+Rolled on the Gymcord Fantasy Slot Machine!
+
+${pool.emoji} **Gymnast Pool:** ${pool.label} — ${pool.desc}
+${draft.emoji} **Draft Type:** ${draft.label} — ${draft.desc}
+${rule.emoji} **Rule:** ${rule.label} — ${rule.desc}`;
+
+    $("copyBtn").dataset.text = copyText;
+  }
+
+  const spinBtn = $("spinBtn");
+  const spinBtnLabel = $("spinBtnLabel");
+  let spinning = false;
+
+  spinBtn.addEventListener("click", async ()=>{
+    if(spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    spinBtn.classList.add("spinning");
+    spinBtnLabel.textContent = "SPINNING...";
+    $("resultPanel").classList.remove("visible");
+
+    const [pool, draft, rule] = await Promise.all([spinReel(0), spinReel(1), spinReel(2)]);
+
+    renderResult(pool, draft, rule);
+
+    spinning = false;
+    spinBtn.disabled = false;
+    spinBtn.classList.remove("spinning");
+    spinBtnLabel.textContent = "SPIN AGAIN";
+  });
+
+  function flashCopyBtn(label){
+    const btn = $("copyBtn");
+    const btnLabel = $("copyBtnLabel");
+    const original = "Copy to Clipboard";
+    btnLabel.textContent = label;
+    btn.classList.add("copied");
+    setTimeout(()=>{ btnLabel.textContent = original; btn.classList.remove("copied"); }, 1800);
+  }
+
+  function fallbackCopy(text){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    let ok = false;
+    try{ ok = document.execCommand("copy"); }catch(e){ ok = false; }
+    document.body.removeChild(ta);
+    flashCopyBtn(ok ? "✅ Copied!" : "⌘/Ctrl+C to copy");
+  }
+
+  $("copyBtn").addEventListener("click", ()=>{
+    const text = $("copyBtn").dataset.text || "";
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text)
+        .then(()=> flashCopyBtn("✅ Copied!"))
+        .catch(()=> fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  REELS.forEach((_, i)=> initReel(i));
+})();
+</script>
+
+</body>
+</html>
